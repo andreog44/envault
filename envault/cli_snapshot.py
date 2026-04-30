@@ -13,6 +13,12 @@ from envault.vault import get_vault_path
 from envault.config import load_config
 
 
+def _get_vault_path_from_project(project: str):
+    """Load config and resolve vault path from a project directory string."""
+    config = load_config(Path(project))
+    return get_vault_path(Path(project), config["vault_dir"])
+
+
 @click.group(name="snapshot")
 def snapshot_group():
     """Manage vault snapshots."""
@@ -23,8 +29,7 @@ def snapshot_group():
 @click.option("--project", "-p", default=".", help="Project directory.", type=click.Path())
 def create_cmd(label: str, project: str):
     """Create a snapshot of the current vault."""
-    config = load_config(Path(project))
-    vault_path = get_vault_path(Path(project), config["vault_dir"])
+    vault_path = _get_vault_path_from_project(project)
 
     try:
         entry = create_snapshot(vault_path, label=label)
@@ -38,8 +43,7 @@ def create_cmd(label: str, project: str):
 @click.option("--project", "-p", default=".", help="Project directory.", type=click.Path())
 def list_cmd(project: str):
     """List all snapshots for the current vault."""
-    config = load_config(Path(project))
-    vault_path = get_vault_path(Path(project), config["vault_dir"])
+    vault_path = _get_vault_path_from_project(project)
     snapshots = list_snapshots(vault_path)
 
     if not snapshots:
@@ -56,8 +60,7 @@ def list_cmd(project: str):
 @click.option("--project", "-p", default=".", help="Project directory.", type=click.Path())
 def restore_cmd(snapshot_id: str, project: str):
     """Restore the vault from a snapshot."""
-    config = load_config(Path(project))
-    vault_path = get_vault_path(Path(project), config["vault_dir"])
+    vault_path = _get_vault_path_from_project(project)
 
     try:
         restore_snapshot(vault_path, snapshot_id)
@@ -72,8 +75,7 @@ def restore_cmd(snapshot_id: str, project: str):
 @click.option("--project", "-p", default=".", help="Project directory.", type=click.Path())
 def delete_cmd(snapshot_id: str, project: str):
     """Delete a snapshot by ID."""
-    config = load_config(Path(project))
-    vault_path = get_vault_path(Path(project), config["vault_dir"])
+    vault_path = _get_vault_path_from_project(project)
 
     try:
         delete_snapshot(vault_path, snapshot_id)
